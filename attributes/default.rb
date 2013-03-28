@@ -48,6 +48,8 @@ when "ubuntu"
     default['postgresql']['version'] = "8.3"
   when node['platform_version'].to_f <= 11.04
     default['postgresql']['version'] = "8.4"
+  when node['postgresql']['enable_pitti_ppa']
+    default['postgresql']['version'] = "9.2"
   else
     default['postgresql']['version'] = "9.1"
   end
@@ -60,9 +62,16 @@ when "ubuntu"
     default['postgresql']['server']['service_name'] = "postgresql"
   end
 
-  default['postgresql']['client']['packages'] = %w{postgresql-client libpq-dev}
-  default['postgresql']['server']['packages'] = %w{postgresql}
-  default['postgresql']['contrib']['packages'] = %w{postgresql-contrib}
+  if node['postgresql']['enable_pitti_ppa']
+    default['postgresql']['client']['packages'] = %W|postgresql-client-#{node['postgresql']['version']} libpq-dev|
+    default['postgresql']['server']['packages'] = %W|postgresql-#{node['postgresql']['version']}|
+    default['postgresql']['contrib']['packages'] = %W|postgresql-contrib-#{node['postgresql']['version']}|
+    default['postgresql']['server']['service_name'] = 'postgresql'
+  else
+    default['postgresql']['client']['packages'] = %w|postgresql-client libpq-dev|
+    default['postgresql']['server']['packages'] = %w|postgresql|
+    default['postgresql']['contrib']['packages'] = %w|postgresql-contrib|
+  end
 
 when "fedora"
 
