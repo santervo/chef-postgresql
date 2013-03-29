@@ -191,7 +191,7 @@ if (mem >= 256)
   }.fetch(db_type)
 
   node.default['postgresql']['config']['effective_cache_size'] = binaryround(effective_cache_size*1024*1024)
-    
+
   # (4) work_mem
   #     Sets the maximum memory to be used for query workspaces.
   work_mem =
@@ -278,3 +278,9 @@ default_statistics_target =
 }.fetch(db_type)
 
 node.default['postgresql']['config']['default_statistics_target'] = default_statistics_target
+
+if node['postgresql'].attribute?('config_pgtune') && node['postgresql']['config_pgtune'].attribute?('tune_sysctl')
+  node.default['sysctl']['kernel']['shmmin'] = 1 * 1024 * 1024 * 1024 # 1 Gb
+  node.default['sysctl']['kernel']['shmmax'] = node['memory']['total'].to_i * 1024
+  node.default['sysctl']['kernel']['shmall'] = (node['memory']['total'].to_i * 1024 * 0.9 / 4096).floor
+end
