@@ -252,7 +252,7 @@ checkpoint_completion_target =
 }.fetch(db_type)
 
 node.default['postgresql']['config']['checkpoint_completion_target'] = checkpoint_completion_target
-  
+
 # (8) wal_buffers
 #     Sets the number of disk-page buffers in shared memory for WAL.
 # Starting with 9.1, wal_buffers will auto-tune if set to the -1 default.
@@ -264,7 +264,7 @@ if node['postgresql']['version'].to_f < 9.1
 else
   node.default['postgresql']['config']['wal_buffers'] = "-1"
 end
-  
+
 # (9) default_statistics_target
 #     Sets the default statistics target. This applies to table columns
 #     that have not had a column-specific target set via
@@ -283,4 +283,15 @@ if node['postgresql'].attribute?('config_pgtune') && node['postgresql']['config_
   node.default['sysctl']['kernel']['shmmin'] = 1 * 1024 * 1024 * 1024 # 1 Gb
   node.default['sysctl']['kernel']['shmmax'] = node['memory']['total'].to_i * 1024
   node.default['sysctl']['kernel']['shmall'] = (node['memory']['total'].to_i * 1024 * 0.9 / 4096).floor
+
+  bash "setup values immediately" do
+    user 'root'
+    group 'root'
+    code <<-EOH
+      sysctl -w kernel.shmmin=#{node.default['sysctl']['kernel']['shmmin']}
+      sysctl -w kernel.shmmax=#{node.default['sysctl']['kernel']['shmmax']}
+      sysctl -w kernel.shmall=#{node.default['sysctl']['kernel']['shmall']}
+    EOH
+  end
+
 end
